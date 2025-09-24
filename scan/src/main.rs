@@ -2,6 +2,7 @@ use chrono::Local;
 use clap::{Arg, Command};
 use ibm1047::Decode;
 use log::{debug, error, info};
+use rayon::ThreadPoolBuilder;
 use rayon::prelude::*; // par_iter
 use regex::Regex;
 use std::cmp::min;
@@ -440,21 +441,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("verbose_file")
                 .short('v')
                 .long("verbose")
-                .help("Verbose log file"),
+                .help("Verbose log file")
         )
         .arg(
             Arg::new("regex_file")
                 .short('r')
                 .long("regex")
-                .default_value("regex.lst"),
+                .default_value("regex.lst")
+                .help("List of expresions")
         )
         .arg(
             Arg::new("skip_mime_file")
+                .short('s')
                 .long("skip_mime")
-                .default_value("skip-mime.lst"),
+                .default_value("skip-mime.lst")
+                .help("List of MIME types excluded from the scanning")
         )
-        .arg(Arg::new("jobs").short('j').long("jobs").default_value("0"))
+        .arg(
+            Arg::new("jobs")
+                .short('j')
+                .long("jobs")
+                .value_parser(clap::value_parser!(usize))
+                .help("Number of jobs to run in parallel, defaults to the number of cores")
+        )
         .get_matches();
+
+    if let Some(jobs) = matches.get_one::<usize>("jobs")
+        && (jobs > &0usize)
+    {
+        ThreadPoolBuilder::new()
+            .num_threads(*jobs)
+            .build_global()
+            .unwrap();
+    }
 
     let verbose_file = matches
         .get_one::<String>("verbose_file")
