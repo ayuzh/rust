@@ -285,10 +285,7 @@ fn extract_and_classify(ds: &Datasource, params: &Parameters, mime_type: &String
     let workdir = TempWorkDir::new(extract_dir).expect("Work directory");
     let extract_dir_str = String::from(workdir.path().to_str().unwrap());
     let archive_path_str = String::from(archive_path.to_str().unwrap());
-    debug!(
-        "extract_dir_str={} archive_path_str={}",
-        extract_dir_str, archive_path_str
-    );
+
     struct Decompress<C, T> {
         cmd: C,
         args: T,
